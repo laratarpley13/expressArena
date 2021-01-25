@@ -60,8 +60,95 @@ app.get('/sum', (req, res) => {
 
   //send the response
   res.send(additionProcess);
+});
+
+app.get('/cipher', (req, res) => {
+  const text = req.query.text;
+  const shift = req.query.shift;
+
+  if(!text) {
+    return res.status(400).send('Text is required.')
+  }
+  if(!shift) {
+    return res.status(400).send('Shift is required.')
+  }
+
+  const numShift = parseFloat(shift);
+
+  if(Number.isNaN(numShift)) {
+    return res.status(400).send('Shift is required to be a number.')
+  }
+
+  const base = 'A'.charCodeAt(0);
+
+  const code = text.toUpperCase().split('').map(letter => {
+    const letterCode = letter.charCodeAt(0);
+    if(letterCode < base || letterCode > (base + 26)) {
+      return letter;
+    }
+
+    let difference = (letterCode - base) + numShift;
+    difference = difference % 26;
+
+    const shiftedLetter = String.fromCharCode(base + difference);
+    return shiftedLetter;
+  }).join('');
+
+  res.send(code);
+});
+
+app.get('/lotto', (req, res) => {
+  const numbers = req.query.numbers;
+
+  if(!numbers) {
+    return res.status(400).send('Numbers are required.')
+  }
+
+  if(!Array.isArray(numbers)) {
+    return res.status(400).send('Numbers must be an array')
+  }
+
+  const guesses = numbers.map(n => parseInt(n)).filter(n => !Number.isNaN(n) && (n >= 1 && n <= 20));
+
+  if(guesses.length !== 6) {
+    return res.status(400).send('Six numbers between 1 and 20 are required.')
+  }
+
+  let randomNumbersList = [];
+
+  for(let i = 0; i < 6; i++) {
+    let randomInt = Math.floor(Math.random() * 20) + 1; //returns a random integer from 1 to 20
+    randomNumbersList.push(randomInt)
+  }
+
+  let count = 0;
+
+  for(let i=0; i < 6; i++) {
+    for(let j=0; j < 6; j++) {
+      if(guesses[j] === randomNumbersList[i]) {
+        count = count + 1;
+      }
+    }
+  }
+
+  let responseText = ""
+
+  if (count < 4) {
+    responseText = "Sorry, you lose";
+  } else if (count === 4) {
+    responseText = "Congratulations, you win a free ticket";
+  } else if (count === 5) {
+    responseText = "Congratulations! You win $100!";
+  } else {
+    responseText = "Wow! Unbelievable! You could have won the mega millions!";
+  }
+
+  console.log(guesses);
+  console.log(randomNumbersList);
+  res.send(responseText);
+
 })
 
 app.listen(8000, () => {
     console.log('Express server is listening on port 8000!');
-})
+});
