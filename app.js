@@ -4,6 +4,8 @@ const morgan = require('morgan');
 const app = express();
 app.use(morgan('dev'));
 
+const playStoreGames = require('./playstore');
+
 app.get('/echo', (req, res) => {
     const responseText = `Here are some details of your request:
       Base URL: ${req.baseUrl}
@@ -147,6 +149,70 @@ app.get('/lotto', (req, res) => {
   console.log(randomNumbersList);
   res.send(responseText);
 
+});
+
+app.get('/grade', (req, res) => {
+  const { mark } = req.query;
+
+  if(!mark) {
+    return res
+      .status(400)
+      .send('Please provide a mark');
+  }
+
+  const numericMark = parseFloat(mark);
+  if (Number.isNaN(numericMark)) {
+    return res
+      .status(400)
+      .send('Mark must be a numeric value');
+  }
+
+  if (numericMark < 0 || numericMark > 100) {
+    return res
+      .status(400)
+      .send('Mark must be in range 0 to 100');
+  }
+
+  if (numericMark >= 90) {
+    return res.send('A');
+  }
+
+  if (numericMark >= 80) {
+    return res.send('B');
+  }
+
+  if (numericMark >= 70) {
+    return res.send('C');
+  }
+
+  res.send('F');
+});
+
+app.get('/apps', (req, res) => {
+  //console.log(playStoreGames);
+  const { genre = "", sort } = req.query;
+
+  if (sort) {
+    if (!['Rating', 'App'].includes(sort)) {
+      return res.status(400).send('Sort must be one of Rating or App');
+    }
+  }
+
+  if (!['', 'Action', 'Puzzle', 'Strategy', 'Casual', 'Arcade', 'Card'].includes(genre)) {
+    return res.status(400).send('Genre must be one of Action, Puzzle, Strategy, Casual, Arcade, or Card');
+  }
+
+  let results = playStoreGames.filter(playStoreGame => 
+    playStoreGame.Genres.includes(genre)
+  );
+
+  if (sort) {
+    results.sort((a, b) => {
+      return a[sort] > b[sort] ? 1 : a[sort] < b[sort] ? -1 : 1;
+    })
+  }
+
+  res.json(results);
 })
 
 app.listen(8000, () => {
