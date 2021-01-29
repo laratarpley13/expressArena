@@ -31,9 +31,4 @@ describe('Playstore App', () => {
                 expect(res.body).to.be.an('array');
             })
     })
-    /*it('should message', () => {
-        return supertest(app)
-            .get('/apps')
-            .expect(200, 'Filler Code')
-    })*/
 })
